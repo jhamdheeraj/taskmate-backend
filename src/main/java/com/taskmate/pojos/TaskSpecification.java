@@ -17,19 +17,22 @@ public class TaskSpecification {
             Priority priority,
             Boolean overdue,
             LocalDateTime dueFrom,
-            LocalDateTime dueTo) {
+            LocalDateTime dueTo,
+            Boolean deleted) {
 
         return (root, query, cb) -> {
 
             List<Predicate> predicates = new ArrayList<>();
 
-            if (status != null) {
-                predicates.add(cb.equal(root.get("status"), status));
+            // By default, exclude deleted tasks unless explicitly requested
+            if (Boolean.TRUE.equals(deleted)) {
+                predicates.add(cb.equal(root.get("deleted"), true));
+            } else {
+                predicates.add(cb.equal(root.get("deleted"), false));
             }
 
-            if (priority != null) {
-                predicates.add(cb.equal(root.get("priority"), priority));
-            }
+            // Note: status and priority fields have been removed from Task entity
+            // These parameters are kept for API compatibility but won't affect filtering
 
             if (dueFrom != null) {
                 predicates.add(cb.greaterThanOrEqualTo(root.get("dueDate"), dueFrom));
@@ -43,7 +46,8 @@ public class TaskSpecification {
                 predicates.add(
                         cb.and(
                                 cb.lessThan(root.get("dueDate"), LocalDateTime.now()),
-                                cb.notEqual(root.get("status"), TaskStatus.DONE)
+                                cb.equal(root.get("completed"), false),
+                                cb.equal(root.get("deleted"), false)
                         )
                 );
             }

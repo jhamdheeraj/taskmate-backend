@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -33,12 +34,16 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public List<Task> getAllTasks() {
-        return taskRepository.findAll();
+        return taskRepository.findAllActiveTasks();
     }
 
     @Override
     public Task getTaskById(String id) {
-        return taskRepository.findById(UUID.fromString(id)).orElse(null);
+        try {
+            return taskRepository.findById(UUID.fromString(id)).orElse(null);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     @Override
@@ -49,6 +54,23 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public void deleteTask(String id) {
 
+    }
+
+    @Override
+    public boolean softDeleteTask(String id) {
+        try {
+            UUID uuid = UUID.fromString(id);
+            Optional<Task> taskOptional = taskRepository.findById(uuid);
+            if (taskOptional.isPresent()) {
+                Task task = taskOptional.get();
+                task.softDelete();
+                taskRepository.save(task);
+                return true;
+            }
+            return false;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
     }
 
     @Override
@@ -69,7 +91,7 @@ public class TaskServiceImpl implements TaskService {
 
         Pageable pageable = PageRequest.of(page, size, sort);
 
-//        Specification<Task> spec = TaskSpecification.filterTasks(status, priority, overdue, dueFrom, dueTo);
+        Specification<Task> spec = TaskSpecification.filterTasks(status, priority, overdue, dueFrom, dueTo);
 
         return taskRepository.findAll(pageable);
     }

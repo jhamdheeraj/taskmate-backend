@@ -3,23 +3,22 @@ spring:
     name: taskmate
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/taskmate
-    username: postgres
-    password: rootroot
-    driver-class-name: org.postgresql.Driver
+    url: jdbc:h2:mem:taskmate;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password: 
+    driver-class-name: org.h2.Driver
 
   jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
-      ddl-auto: validate   # IMPORTANT → prevents Hibernate from auto-creating tables
+      ddl-auto: create/drop   # Auto-create/drop tables for H2 in-memory
     show-sql: true
     properties:
         hibernate:
           format_sql: true
-        type:
-          preferred_enum_type: pg_enum
 
   sql:
     init:
-      mode: never     # Forces schema.sql to run
+      mode: always     # Always run schema.sql on startup
+      schema-locations: classpath:schema.sql
 #      continue-on-error: false

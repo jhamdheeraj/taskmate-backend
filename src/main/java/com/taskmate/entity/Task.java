@@ -1,6 +1,8 @@
 package com.taskmate.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -9,8 +11,7 @@ import java.util.UUID;
 @Table(
         name = "tasks",
         indexes = {
-                @Index(name = "idx_task_status", columnList = "status"),
-                @Index(name = "idx_task_priority", columnList = "priority"),
+                @Index(name = "idx_task_completed", columnList = "completed"),
                 @Index(name = "idx_task_due_date", columnList = "due_date")
         }
 )
@@ -20,19 +21,20 @@ public class Task {
     @GeneratedValue
     private UUID id;
 
+    @NotBlank(message = "Title is required")
+    @Size(min = 1, max = 255, message = "Title must be between 1 and 255 characters")
     @Column(nullable = false, length = 255)
     private String title;
 
+    @Size(max = 2000, message = "Description must not exceed 2000 characters")
     @Column(length = 2000)
     private String description;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
-    private TaskStatus status;
+    @Column(nullable = false)
+    private boolean completed;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20, columnDefinition = "task_priority")
-    private Priority priority;
+    @Column(nullable = false)
+    private boolean deleted = false;
 
     @Column(name = "due_date")
     private LocalDateTime dueDate;
@@ -47,12 +49,11 @@ public class Task {
         // Required by JPA
     }
 
-    public Task(String title, String description, Priority priority, LocalDateTime dueDate) {
+    public Task(String title, String description, LocalDateTime dueDate) {
         this.title = title;
         this.description = description;
-        this.priority = priority;
         this.dueDate = dueDate;
-        this.status = TaskStatus.TODO;
+        this.completed = false;
     }
 
     @PrePersist
@@ -68,18 +69,23 @@ public class Task {
 
     // ===== Business Methods =====
 
-    public void markInProgress() {
-        this.status = TaskStatus.IN_PROGRESS;
+    public void markCompleted() {
+        this.completed = true;
     }
 
-    public void markCompleted() {
-        this.status = TaskStatus.DONE;
+    public void markIncomplete() {
+        this.completed = false;
+    }
+
+    public void softDelete() {
+        this.deleted = true;
     }
 
     public boolean isOverdue() {
         return dueDate != null
                 && dueDate.isBefore(LocalDateTime.now())
-                && status != TaskStatus.DONE;
+                && !completed
+                && !deleted;
     }
 
     // ===== Getters Only (Encapsulation) =====
@@ -87,17 +93,16 @@ public class Task {
     public UUID getId() { return id; }
     public String getTitle() { return title; }
     public String getDescription() { return description; }
-    public TaskStatus getStatus() { return status; }
-    public Priority getPriority() { return priority; }
+    public boolean isCompleted() { return completed; }
+    public boolean isDeleted() { return deleted; }
     public LocalDateTime getDueDate() { return dueDate; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
 
     // Controlled update method instead of public setters
-    public void updateDetails(String title, String description, Priority priority, LocalDateTime dueDate) {
+    public void updateDetails(String title, String description, LocalDateTime dueDate) {
         this.title = title;
         this.description = description;
-        this.priority = priority;
         this.dueDate = dueDate;
     }
 }

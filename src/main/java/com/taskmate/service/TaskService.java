@@ -20,14 +20,17 @@ public interface TaskService {
 
     void deleteTask(String id);
 
+    boolean softDeleteTask(String id);
+
      Page<Task> getTasks(
-            TaskStatus status,
-            Priority priority,
-            Boolean overdue,
-            LocalDateTime dueFrom,
-            LocalDateTime dueTo,
-            int page,
-            int size,
-            String sortBy,
-            String direction);
+             TaskStatus status,
+             Priority priority,
+             Boolean overdue,
+             LocalDateTime dueFrom,
+             LocalDateTime dueTo,
+             int page,
+             int size,
+             Boolean deleted,
+             String sortBy,
+             String direction);
 }
