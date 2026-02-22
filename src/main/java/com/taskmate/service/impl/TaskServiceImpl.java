@@ -82,6 +82,7 @@ public class TaskServiceImpl implements TaskService {
             LocalDateTime dueTo,
             int page,
             int size,
+            Boolean delete,
             String sortBy,
             String direction) {
 
@@ -91,8 +92,8 @@ public class TaskServiceImpl implements TaskService {
 
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Specification<Task> spec = TaskSpecification.filterTasks(status, priority, overdue, dueFrom, dueTo);
+        Specification<Task> spec = TaskSpecification.filterTasks(status, priority, overdue, dueFrom, dueTo, delete);
 
-        return taskRepository.findAll(pageable);
+        return taskRepository.findAll(spec, pageable);
     }
 }

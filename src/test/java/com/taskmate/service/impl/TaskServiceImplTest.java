@@ -58,13 +58,13 @@ class TaskServiceImplTest {
     @DisplayName("Should get all tasks")
     void shouldGetAllTasks() {
         List<Task> tasks = Arrays.asList(testTask);
-        when(taskRepository.findAll()).thenReturn(tasks);
+        when(taskRepository.findAllActiveTasks()).thenReturn(tasks);
 
         List<Task> result = taskService.getAllTasks();
 
         assertEquals(1, result.size());
         assertEquals(testTask.getTitle(), result.get(0).getTitle());
-        verify(taskRepository, times(1)).findAll();
+        verify(taskRepository, times(1)).findAllActiveTasks();
     }
 
     @Test
@@ -196,12 +196,12 @@ class TaskServiceImplTest {
     @Test
     @DisplayName("Should handle empty task list")
     void shouldHandleEmptyTaskList() {
-        when(taskRepository.findAll()).thenReturn(Arrays.asList());
+        when(taskRepository.findAllActiveTasks()).thenReturn(Arrays.asList());
 
         List<Task> result = taskService.getAllTasks();
 
         assertTrue(result.isEmpty());
-        verify(taskRepository, times(1)).findAll();
+        verify(taskRepository, times(1)).findAllActiveTasks();
     }
 
     @Test
